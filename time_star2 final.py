@@ -1,4 +1,5 @@
 import time
+
 class Timer:
     # Определяем класс
     # Пишем конструктор класса
@@ -10,7 +11,7 @@ class Timer:
     # декоратор
         def wrap(*args, **kwargs):
             avg_time = 0
-            for i in range(self.num_runs):
+            for _ in range(self.num_runs):  # i не используется поэтому можно заменить на _
                 t0 = time.time()
                 func(*args, **kwargs)
                 t1 = time.time()
@@ -21,6 +22,14 @@ class Timer:
         return wrap
 
     def __enter__(self):
+        """
+        в вашем случае with Timer() as t: ничего не возвращет t = None
+
+        вот можно использовать return self
+        тогда можно использовать Timer вот так
+        with Timer() as decor:
+            b = decor(sleep_3s)
+        """
         self.t0 = time.time()
         
     def __exit__(self, *args):
@@ -28,21 +37,13 @@ class Timer:
         avg_time = (t1-self.t0)
         print(f"Среднее время выполнения - {avg_time:.5f}")
 
-# Создаём объект класса
-timer_10 = Timer(num_runs = 1000)
-# Используем объект, как декоратор
- 
+@Timer(2)  # Timer можно создать тут не используя отдельную переменную
+def sleep_3s():
+    """
+    функция эталон - задержка 3 секунды
+    """
+    time.sleep(3)
 
-
-@timer_10
-def f():
-    for i in range(10000):
-        pass
-# Вызываем функцию
-print("Тестируем объект класса в качестве декоратора")
-f()
-
-print("Тестируем в качетве контекстного менеджера")
-with Timer() as t:
-    a = list(range(1000000, 1, -1))
-    a.sort()
+if __name__ == '__main__':
+    with Timer():
+        sleep_3s()
